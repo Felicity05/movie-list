@@ -4,27 +4,21 @@ A movie browser built with Next.js that lists movies from the [TMDB](https://www
 
 ## Getting started
 
-1. Install dependencies:
+1. Install the dependencies and start the app:
 
    ```bash
-   npm install
+   npm i && npm start
    ```
 
-2. Create a `.env.local` file in the project root with a TMDB API key (I've included mine in the submission email):
+   `npm start` first creates a production build (the `prestart` script runs `next build`), then starts the server.
 
-   ```
-   TMDB_API_KEY=your_key_here
-   ```
 
-   The key is kept out of the repository on purpose, so it isn't exposed publicly. It is only read on the server and never sent to the browser. If it's missing, the app shows its error page and the server logs explain which variable to add.
+2. Open [http://localhost:3000](http://localhost:3000).
 
-3. Start the development server:
+No extra setup is needed: a TMDB API key is included in the `.env.local` file so the project runs as soon as it's cloned. In a real project, this file would be kept out of the repository. The key is only read on the server and is never sent to the browser. To use your own key, replace the value of `TMDB_API_KEY` in `.env.local`.
 
-   ```bash
-   npm run dev
-   ```
 
-4. Open [http://localhost:3000](http://localhost:3000).
+For development with automatic reloading on code changes, run `npm run dev` instead of `npm start`.
 
 ## Features
 
@@ -103,3 +97,7 @@ src/
 - React 19
 - TypeScript
 - Tailwind CSS 4
+
+### AI assistance
+
+I used an AI assistant to help with code review and debugging during the project.
