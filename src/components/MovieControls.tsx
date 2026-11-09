@@ -1,6 +1,6 @@
 "use client";
 
-import {FormEvent, useTransition} from "react";
+import {SubmitEvent, useTransition} from "react";
 import {usePathname, useRouter, useSearchParams} from "next/navigation";
 import {Genre} from "@/api/types";
 
@@ -39,12 +39,14 @@ export function MovieControls({genres}: { genres: Genre[] }) {
 
     const currentQuery = searchParams.get("query") ?? "";
 
-    function handleSearch(event: FormEvent<HTMLFormElement>) {
+    function handleSearch(event: SubmitEvent<HTMLFormElement>) {
         event.preventDefault(); // stop the browser from reloading the page
         const formData = new FormData(event.currentTarget);
         const text = String(formData.get("query") ?? "").trim();
         updateSearchParam("query", text || null);
     }
+
+    //popularity, rating, release date and title, plus ascending or descending.
 
     return (
         <div className="flex justify-center gap-4 mb-5 flex-wrap">
