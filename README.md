@@ -1,6 +1,6 @@
 # Movie List
 
-A movie browser built with Next.js that lists movies from the [TMDB](https://www.themoviedb.org/) `/discover/movie` endpoint, with filtering by genre and sorting by rating.
+A movie browser built with Next.js that lists movies from the [TMDB](https://www.themoviedb.org/) `/discover/movie` endpoint, with filtering by genre, sorting by rating, search by title and pagination.
 
 ## Getting started
 
@@ -24,7 +24,7 @@ For development with automatic reloading on code changes, run `npm run dev` inst
 
 ### Requirements
 
-- **Fetching movies:** the first page of results from `/discover/movie`.
+- **Fetching movies:** results from `/discover/movie`, 20 per page.
 - **Filter applied to the API request:** choosing a genre from the dropdown sends `with_genres=<genre id>` to TMDB, so the filtering happens on the API side. The genre list itself is loaded from `/genre/movie/list`.
 - **Sorting:** the "Sort by Rating" button sends `sort_by=vote_average.desc` to TMDB. Clicking it again removes the sort and returns to TMDB's default order (popularity).
 - **Movie grid:** each card shows:
@@ -42,14 +42,17 @@ For development with automatic reloading on code changes, run `npm run dev` inst
 - **CSS transitions:** the card hover effect is animated.
 - **Loading skeleton:** pulsing placeholder cards are shown while movies load, both on the first visit and whenever the genre or sort changes.
 - **Error page:** if a TMDB request fails, a friendly message with a "Try again" button is shown instead of Next.js's default error page.
+- **Pagination:** Prev and Next buttons, plus up to 5 page numbers around the current page. The current page is highlighted, and the controls are hidden when there's only one page.
+- **Search by title:** a search box that uses TMDB's `/search/movie` endpoint. Results are paginated the same way.
+- **Empty state:** when there are no results (for example, a search with no matches or a page past the end), a "No movies found" message is shown, with a link back to page 1 when needed.
 
 ## How it works
 
-The current filter and sort are stored in the URL, for example `/?genre=28&sort=rating`:
+The current filter, sort, search and page are stored in the URL, for example `/?genre=28&sort=rating&page=2` or `/?query=batman`:
 
-1. `MovieControls` (a client component) updates the URL when the button is clicked or a genre is selected.
-2. `page.tsx` reads the URL's `searchParams` on the server and passes the values to `MoviePage`, which passes them to `MovieGrid`.
-3. `MovieGrid` calls `getMovies()`, which adds the matching TMDB query parameters to the request.
+1. `MovieControls` and `Pagination` (client components) update the URL when the user sorts, picks a genre, searches or changes page.
+2. `page.tsx` reads the URL's `searchParams` on the server, checks them (an invalid page becomes 1, and the page is capped at 500), and passes the values to `MoviePage`, which passes them to `MovieGrid`.
+3. `MovieGrid` calls `searchMovies()` when there's a search term, or `getMovies()` otherwise, and renders the grid and the pagination controls.
 
 Storing the state in the URL means a filtered or sorted view can be bookmarked or shared, and the browser's back and forward buttons work as expected.
 
@@ -57,7 +60,7 @@ Storing the state in the URL means a filtered or sorted view can be bookmarked o
 
 - `layout.tsx` holds the page frame and heading, so they stay on screen while the page loads or after an error.
 - `loading.tsx` is shown on the first visit, with placeholders for the controls and the grid.
-- When the genre or sort changes, only the grid is replaced by the skeleton. `MovieGrid` is wrapped in a `<Suspense>` whose `key` is built from the filter and sort, so each change starts a fresh loading state while the heading and controls stay in place.
+- When the genre, sort, search or page changes, only the grid is replaced by the skeleton. `MovieGrid` is wrapped in a `<Suspense>` whose `key` is built from all four values, so each change starts a fresh loading state while the heading and controls stay in place.
 - `error.tsx` catches errors from the page, such as a failed TMDB request or a missing API key, and offers a retry.
 
 ## Decisions
@@ -68,6 +71,10 @@ Storing the state in the URL means a filtered or sorted view can be bookmarked o
 - **One shared fetch helper:** `fetchFromTmdb()` in `src/api/api.ts` builds the URL, adds the API key, checks the response and returns typed data. Both API functions use it, and errors are thrown rather than hidden, so `error.tsx` can show them.
 - **Image loading:** the first 10 posters load immediately because they're the ones visible first. The rest load as you scroll. Each poster also has a `sizes` hint, so the browser downloads an image no bigger than the column it's shown in.
 - **Same poster shape for every card:** a few TMDB posters aren't exactly 2:3, which made some cards shorter than others. Every poster is shown in a 2:3 frame and fills it, trimming a thin strip if needed, so all cards in a row line up.
+- **Search and filters take turns:** TMDB's `/search/movie` endpoint doesn't support genre filtering or sorting. Filtering the results in the app would only cover the 20 movies on the current page, so the page count would be wrong. Instead, searching clears the genre and sort, and choosing a genre or sort clears the search.
+- **Search on submit, not on every keystroke:** the search runs when the user presses Enter or clicks Search. Updating the URL on every keystroke would send a TMDB request per letter and add a browser history entry per letter.
+- **Changing the filter, sort or search goes back to page 1:** different results have different numbers of pages, so keeping the old page could land on an empty one.
+- **Pages capped at 500:** TMDB rejects page numbers above 500, so the pagination never goes past it and larger values in the URL are reduced to 500.
 - **Dates shown in UTC:** TMDB release dates are plain dates (`2025-07-16`). Formatting them in the local timezone would show the previous day in the Americas.
 
 ## Project structure
@@ -75,18 +82,19 @@ Storing the state in the URL means a filtered or sorted view can be bookmarked o
 ```
 src/
 ├── api/
-│   ├── api.ts                 # TMDB requests (fetchFromTmdb, getMovies, getMovieGenres)
+│   ├── api.ts                 # TMDB requests (fetchFromTmdb, getMovies, searchMovies, getMovieGenres)
 │   └── types.ts               # TypeScript types for TMDB responses and the filters
 ├── app/
 │   ├── layout.tsx             # Page frame and heading, shared by the page, loading and error states
-│   ├── page.tsx               # Reads searchParams and renders MoviePage
+│   ├── page.tsx               # Reads and checks searchParams, renders MoviePage
 │   ├── loading.tsx            # Skeleton shown on the first load
 │   ├── error.tsx              # Error message with a retry button
 │   └── globals.css            # Tailwind setup and theme colors
 └── components/
     ├── MoviePage.tsx          # Fetches genres, renders the controls and the grid
-    ├── MovieControls.tsx      # Sort button and genre dropdown (client component)
-    ├── MovieGrid.tsx          # Fetches movies and renders the grid
+    ├── MovieControls.tsx      # Sort button, genre dropdown and search box (client component)
+    ├── MovieGrid.tsx          # Fetches movies, renders the grid, pagination or empty state
+    ├── Pagination.tsx         # Prev, Next and page-number buttons (client component)
     ├── MovieGridSkeleton.tsx  # Placeholder grid shown while movies load
     └── MovieCard.tsx          # A single movie card
 ```

@@ -28,7 +28,7 @@ async function fetchFromTmdb<T>(path: string, params: Record<string, string> = {
     return response.json();
 }
 
-export function getMovies({genreId, sortByRating}: MovieFilters = {}) {
+export function getMovies({genreId, sortByRating, page}: MovieFilters = {}) {
     const params: Record<string, string> = {};
 
     if (genreId) {
@@ -40,9 +40,23 @@ export function getMovies({genreId, sortByRating}: MovieFilters = {}) {
         params['vote_count.gte'] = '300'; // min number of votes per movie
     }
 
+    if (page) {
+        params.page = page.toString();
+    }
+
     return fetchFromTmdb<MovieList>('/discover/movie', params);
 }
 
 export function getMovieGenres() {
     return fetchFromTmdb<GenreList>('/genre/movie/list');
+}
+
+export function searchMovies(query: string, page?: number) {
+    const params: Record<string, string> = {query};
+
+    if (page) {
+        params.page = page.toString();
+    }
+
+    return fetchFromTmdb<MovieList>('/search/movie', params);
 }

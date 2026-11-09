@@ -34,4 +34,6 @@ export type Genre = {
 export type MovieFilters = {
     genreId?: string,
     sortByRating?: boolean,
+    page?: number,
+    searchQuery?: string,
 }

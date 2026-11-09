@@ -5,14 +5,14 @@ import {MovieFilters} from "@/api/types";
 import {MovieGridSkeleton} from "@/components/MovieGridSkeleton";
 import {Suspense} from "react";
 
-export async function MoviePage({genreId, sortByRating}: MovieFilters) {
+export async function MoviePage({genreId, sortByRating, page, searchQuery}: MovieFilters) {
     const movieGenres = await getMovieGenres();
 
     return (
         <div className="w-full">
             <MovieControls genres={movieGenres.genres} />
-            <Suspense key={`${genreId}-${sortByRating}`} fallback={<MovieGridSkeleton/>}>
-                <MovieGrid genreId={genreId} sortByRating={sortByRating}/>
+            <Suspense key={`${genreId}-${sortByRating}-${page}-${searchQuery}`} fallback={<MovieGridSkeleton/>}>
+                <MovieGrid genreId={genreId} sortByRating={sortByRating} page={page} searchQuery={searchQuery}/>
             </Suspense>
         </div>
     )
