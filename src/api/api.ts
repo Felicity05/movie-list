@@ -1,4 +1,5 @@
 import {GenreList, MovieFilters, MovieList} from "@/api/types";
+import {sortOptions} from "@/lib/sortOptions";
 
 const baseUrl = 'https://api.themoviedb.org/3';
 const apiKey = process.env.TMDB_API_KEY;
@@ -28,16 +29,11 @@ async function fetchFromTmdb<T>(path: string, params: Record<string, string> = {
     return response.json();
 }
 
-export function getMovies({genreId, sortByRating, page}: MovieFilters = {}) {
-    const params: Record<string, string> = {};
+export function getMovies({genreId, sortBy, page}: MovieFilters = {}) {
+    const params: Record<string, string> = sortBy ? {...sortOptions[sortBy].params} : {};
 
     if (genreId) {
         params.with_genres = genreId;
-    }
-
-    if (sortByRating) {
-        params.sort_by = 'vote_average.desc';
-        params['vote_count.gte'] = '300'; // min number of votes per movie
     }
 
     if (page) {

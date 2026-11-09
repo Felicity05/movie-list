@@ -6,16 +6,16 @@ import Link from "next/link";
 
 const tmdbMaxPage = 500; // TMDB rejects page numbers above 500
 
-export async function MovieGrid({genreId, sortByRating, page = 1, searchQuery}: MovieFilters) {
+export async function MovieGrid({genreId, sortBy, page = 1, searchQuery}: MovieFilters) {
     const movieList = searchQuery
         ? await searchMovies(searchQuery, page)
-        : await getMovies({genreId, sortByRating, page});
+        : await getMovies({genreId, sortBy, page});
 
     if (movieList.results.length === 0) {
         // keep the filters and search, drop the page
         const firstPageParams = new URLSearchParams();
         if (genreId) firstPageParams.set("genre", genreId);
-        if (sortByRating) firstPageParams.set("sort", "rating");
+        if (sortBy) firstPageParams.set("sort", sortBy);
         if (searchQuery) firstPageParams.set("query", searchQuery);
         const firstPageQuery = firstPageParams.toString();
 

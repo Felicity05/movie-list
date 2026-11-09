@@ -1,6 +1,6 @@
 # Movie List
 
-A movie browser built with Next.js that lists movies from the [TMDB](https://www.themoviedb.org/) `/discover/movie` endpoint, with filtering by genre, sorting by rating, search by title and pagination.
+A movie browser built with Next.js that lists movies from the [TMDB](https://www.themoviedb.org/) `/discover/movie` endpoint, with filtering by genre, several sort options, search by title and pagination.
 
 ## Getting started
 
@@ -26,7 +26,7 @@ For development with automatic reloading on code changes, run `npm run dev` inst
 
 - **Fetching movies:** results from `/discover/movie`, 20 per page.
 - **Filter applied to the API request:** choosing a genre from the dropdown sends `with_genres=<genre id>` to TMDB, so the filtering happens on the API side. The genre list itself is loaded from `/genre/movie/list`.
-- **Sorting:** the "Sort by Rating" button sends `sort_by=vote_average.desc` to TMDB. Clicking it again removes the sort and returns to TMDB's default order (popularity).
+- **Sorting:** a "Sort by" dropdown with Most popular (TMDB's default), Highest rated, Newest, Oldest, Title A–Z and Most voted. Each choice sends the matching `sort_by` value to TMDB, for example `vote_average.desc` for Highest rated.
 - **Movie grid:** each card shows:
   - the poster image, or a "No Poster Available" placeholder of the same size when TMDB has none
   - the title
@@ -38,7 +38,7 @@ For development with automatic reloading on code changes, run `npm run dev` inst
 ### Extras
 
 - **Responsive grid:** 1 column on phones, increasing to 2, 3 and 5 columns as the screen gets wider.
-- **UI for filtering and sorting:** a dropdown for genres and a toggle button for sorting. Both are disabled while the new results load.
+- **UI for filtering and sorting:** dropdowns for the genre and the sort order. Both are disabled while the new results load.
 - **CSS transitions:** the card hover effect is animated.
 - **Loading skeleton:** pulsing placeholder cards are shown while movies load, both on the first visit and whenever the genre or sort changes.
 - **Error page:** if a TMDB request fails, a friendly message with a "Try again" button is shown instead of Next.js's default error page.
@@ -66,7 +66,10 @@ Storing the state in the URL means a filtered or sorted view can be bookmarked o
 ## Decisions
 
 - **Sorting through the API instead of in the browser:** TMDB sorts across all matching movies, not just the 20 on the first page. Sorting in the browser would only reorder the movies already loaded.
-- **Minimum vote count when sorting by rating:** with `sort_by=vote_average.desc` alone, the top results are obscure movies with a single 10/10 vote. The request also sends `vote_count.gte=300`, so the list shows well-rated movies that enough people have voted on.
+- **Minimum vote counts for some sorts:** with `sort_by=vote_average.desc` alone, the top results are obscure movies with a single 10/10 vote, so Highest rated also sends `vote_count.gte=300`. Newest, Oldest and Title A–Z require at least 50 votes, which keeps unreleased and very obscure movies off the top of the list.
+- **One shared list of sort options:** `src/lib/sortOptions.ts` holds each option's label and its TMDB parameters. The dropdown reads the labels in the browser and `getMovies()` reads the parameters on the server, so adding a sort is a one-line change. The file never reads the API key, so it's safe to use in the browser.
+- **Short sort names in the URL:** the URL uses the app's own names (`?sort=newest`) rather than TMDB's (`primary_release_date.desc`). Unknown values are ignored, and old `?sort=rating` links still work.
+- **No "Title Z–A" option:** TMDB's descending title sort puts titles in non-Latin alphabets after Z, so the list didn't start where users would expect.
 - **Server components by default:** data is fetched on the server, and only the controls run in the browser, since they need click and change handlers.
 - **One shared fetch helper:** `fetchFromTmdb()` in `src/api/api.ts` builds the URL, adds the API key, checks the response and returns typed data. Both API functions use it, and errors are thrown rather than hidden, so `error.tsx` can show them.
 - **Image loading:** the first 10 posters load immediately because they're the ones visible first. The rest load as you scroll. Each poster also has a `sizes` hint, so the browser downloads an image no bigger than the column it's shown in.
@@ -84,6 +87,8 @@ src/
 ├── api/
 │   ├── api.ts                 # TMDB requests (fetchFromTmdb, getMovies, searchMovies, getMovieGenres)
 │   └── types.ts               # TypeScript types for TMDB responses and the filters
+├── lib/
+│   └── sortOptions.ts         # Sort options: dropdown labels and TMDB parameters
 ├── app/
 │   ├── layout.tsx             # Page frame and heading, shared by the page, loading and error states
 │   ├── page.tsx               # Reads and checks searchParams, renders MoviePage
@@ -92,7 +97,7 @@ src/
 │   └── globals.css            # Tailwind setup and theme colors
 └── components/
     ├── MoviePage.tsx          # Fetches genres, renders the controls and the grid
-    ├── MovieControls.tsx      # Sort button, genre dropdown and search box (client component)
+    ├── MovieControls.tsx      # Sort and genre dropdowns and search box (client component)
     ├── MovieGrid.tsx          # Fetches movies, renders the grid, pagination or empty state
     ├── Pagination.tsx         # Prev, Next and page-number buttons (client component)
     ├── MovieGridSkeleton.tsx  # Placeholder grid shown while movies load

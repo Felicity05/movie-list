@@ -1,3 +1,5 @@
+import {SortOption} from "@/lib/sortOptions";
+
 export type MovieList = {
     page: number,
     results: Movie[];
@@ -33,7 +35,7 @@ export type Genre = {
 
 export type MovieFilters = {
     genreId?: string,
-    sortByRating?: boolean,
+    sortBy?: SortOption,
     page?: number,
     searchQuery?: string,
 }

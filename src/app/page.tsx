@@ -1,4 +1,5 @@
 import {MoviePage} from "@/components/MoviePage";
+import {isSortOption} from "@/lib/sortOptions";
 
 export default async function Home({ searchParams }: PageProps<"/">) {
   const { genre, sort, page, query } = await searchParams;
@@ -7,7 +8,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
   return (
     <MoviePage
       genreId={typeof genre === "string" ? genre : undefined}
-      sortByRating={sort === "rating"}
+      sortBy={isSortOption(sort) ? sort : undefined}
       page={Number.isInteger(pageNumber) && pageNumber > 0 ? Math.min(pageNumber, 500) : 1}
       searchQuery={typeof query === "string" && query.trim() ? query.trim() : undefined}
     />
