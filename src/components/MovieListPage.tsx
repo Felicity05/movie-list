@@ -5,7 +5,7 @@ import {MovieFilters} from "@/api/types";
 import {MovieGridSkeleton} from "@/components/MovieGridSkeleton";
 import {Suspense} from "react";
 
-export async function MoviePage({genreId, sortBy, page, searchQuery}: MovieFilters) {
+export async function MovieListPage({genreId, sortBy, page, searchQuery}: MovieFilters) {
     const movieGenres = await getMovieGenres();
 
     return (

@@ -1,4 +1,4 @@
-import {GenreList, MovieFilters, MovieList} from "@/api/types";
+import {GenreList, MovieDetails, MovieFilters, MovieList} from "@/api/types";
 import {sortOptions} from "@/lib/sortOptions";
 
 const baseUrl = 'https://api.themoviedb.org/3';
@@ -55,4 +55,8 @@ export function searchMovies(query: string, page?: number) {
     }
 
     return fetchFromTmdb<MovieList>('/search/movie', params);
+}
+
+export function getMovie(id: string) {
+    return fetchFromTmdb<MovieDetails>(`/movie/${id}`);
 }

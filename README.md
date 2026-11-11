@@ -1,6 +1,6 @@
 # Movie List
 
-A movie browser built with Next.js that lists movies from the [TMDB](https://www.themoviedb.org/) `/discover/movie` endpoint, with filtering by genre, several sort options, search by title and pagination.
+A movie browser built with Next.js that lists movies from the [TMDB](https://www.themoviedb.org/) `/discover/movie` endpoint, with filtering by genre, several sort options, search by title, pagination and a details page for each movie.
 
 ## Getting started
 
@@ -44,6 +44,7 @@ For development with automatic reloading on code changes, run `npm run dev` inst
 - **Error page:** if a TMDB request fails, a friendly message with a "Try again" button is shown instead of Next.js's default error page.
 - **Pagination:** Prev and Next buttons, plus up to 5 page numbers around the current page. The current page is highlighted, and the controls are hidden when there's only one page.
 - **Search by title:** a search box that uses TMDB's `/search/movie` endpoint. Results are paginated the same way.
+- **Movie details page:** each card links to `/movie/{id}`, which fetches `/movie/{id}` from TMDB and shows the poster, overview, genres, release date, rating, runtime, status and languages. It has its own loading skeleton, a "Movie not found" page for unknown ids, and a back button that returns to the list with its filters, sort, search and page.
 - **Empty state:** when there are no results (for example, a search with no matches or a page past the end), a "No movies found" message is shown, with a link back to page 1 when needed.
 
 ## How it works
@@ -85,23 +86,30 @@ Storing the state in the URL means a filtered or sorted view can be bookmarked o
 ```
 src/
 ├── api/
-│   ├── api.ts                 # TMDB requests (fetchFromTmdb, getMovies, searchMovies, getMovieGenres)
+│   ├── api.ts                 # TMDB requests (fetchFromTmdb, getMovies, searchMovies, getMovieGenres, getMovie)
 │   └── types.ts               # TypeScript types for TMDB responses and the filters
 ├── lib/
-│   └── sortOptions.ts         # Sort options: dropdown labels and TMDB parameters
+│   ├── sortOptions.ts         # Sort options: dropdown labels and TMDB parameters
+│   └── utils.ts               # Release date and runtime formatting
 ├── app/
 │   ├── layout.tsx             # Page frame and heading, shared by the page, loading and error states
-│   ├── page.tsx               # Reads and checks searchParams, renders MoviePage
+│   ├── page.tsx               # Reads and checks searchParams, renders MovieListPage
 │   ├── loading.tsx            # Skeleton shown on the first load
 │   ├── error.tsx              # Error message with a retry button
-│   └── globals.css            # Tailwind setup and theme colors
+│   ├── globals.css            # Tailwind setup and theme colors
+│   └── movie/[id]/
+│       ├── page.tsx           # Movie details route
+│       ├── loading.tsx        # Skeleton shaped like the details page
+│       └── not-found.tsx      # Shown for an unknown movie id
 └── components/
-    ├── MoviePage.tsx          # Fetches genres, renders the controls and the grid
+    ├── MovieListPage.tsx      # Fetches genres, renders the controls and the grid
     ├── MovieControls.tsx      # Sort and genre dropdowns and search box (client component)
     ├── MovieGrid.tsx          # Fetches movies, renders the grid, pagination or empty state
     ├── Pagination.tsx         # Prev, Next and page-number buttons (client component)
     ├── MovieGridSkeleton.tsx  # Placeholder grid shown while movies load
-    └── MovieCard.tsx          # A single movie card
+    ├── MovieCard.tsx          # A single movie card, linking to its details page
+    ├── MovieDetails.tsx       # Fetches one movie and shows its details
+    └── BackButton.tsx         # Returns to the list (client component)
 ```
 
 ## Tech stack

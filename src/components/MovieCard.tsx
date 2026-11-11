@@ -1,5 +1,7 @@
 import Image from "next/image";
 import {Movie} from "@/api/types";
+import Link from "next/link";
+import {formatReleaseDate} from "@/lib/utils";
 
 export function MovieCard({movie, loadImageEagerly}: { movie: Movie, loadImageEagerly?: boolean }) {
     const overviewWords = movie.overview.split(" ");
@@ -12,10 +14,10 @@ export function MovieCard({movie, loadImageEagerly}: { movie: Movie, loadImageEa
                             bg-light-green transition hover:scale-105 hover:shadow-xl">
             {movie.poster_path ?
                 <Image src={baseImgURL + movie.poster_path}
-                    alt={`${movie.title} poster`} width={400} height={600}
-                    loading={loadImageEagerly ? "eager" : "lazy"}
-                    sizes="(min-width: 1024px) 20vw, (min-width: 640px) 50vw, 100vw"
-                    className="rounded-md shadow-md w-full aspect-2/3 object-cover"
+                       alt={`${movie.title} poster`} width={400} height={600}
+                       loading={loadImageEagerly ? "eager" : "lazy"}
+                       sizes="(min-width: 1024px) 20vw, (min-width: 640px) 50vw, 100vw"
+                       className="rounded-md shadow-md w-full aspect-2/3 object-cover"
                 /> : <div className="flex aspect-2/3 w-full items-center justify-center rounded-md bg-ink/20 text-ink">
                     <p className="text-xl font-bold">No Poster Available</p>
                 </div>}
@@ -27,19 +29,15 @@ export function MovieCard({movie, loadImageEagerly}: { movie: Movie, loadImageEa
                         {shortOverview} {isLongOverview ? " ..." : ""}
                     </p>
                     {isLongOverview && (
-                        <div className="pointer-events-none absolute bottom-full left-0 z-10 mb-2 hidden w-64 rounded bg-black p-2 text-sm text-white shadow-lg group-hover:block">
+                        <div
+                            className="pointer-events-none absolute bottom-full left-0 z-10 mb-2 hidden w-64 rounded bg-black p-2 text-sm text-white shadow-lg group-hover:block">
                             {movie.overview}
                         </div>
                     )}
                 </div>
-                <p><span className="font-semibold">Release date: </span>
-                    {movie.release_date ? new Date(movie.release_date).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                    timeZone: "UTC"
-                }) : "Unknown"}
+                <p><span className="font-semibold">Release date: </span>{formatReleaseDate(movie.release_date)}
                 </p>
+                <Link href={`/movie/${movie.id}`} className="text-dark-blue hover:underline font-semibold">View details</Link>
             </div>
         </article>
     )
