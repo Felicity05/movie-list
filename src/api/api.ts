@@ -4,7 +4,11 @@ import {sortOptions} from "@/lib/sortOptions";
 const baseUrl = 'https://api.themoviedb.org/3';
 const apiKey = process.env.TMDB_API_KEY;
 
-async function fetchFromTmdb<T>(path: string, params: Record<string, string> = {}): Promise<T> {
+// how long Next keeps a TMDB response before fetching a fresh copy (in seconds)
+const oneHour = 60 * 60;
+const oneDay = 24 * oneHour;
+
+async function fetchFromTmdb<T>(path: string, params: Record<string, string> = {}, revalidate?: number): Promise<T> {
     const url = new URL(`${baseUrl}${path}`);
 
     if (!apiKey) {
@@ -20,6 +24,7 @@ async function fetchFromTmdb<T>(path: string, params: Record<string, string> = {
         headers: {
             accept: 'application/json',
         },
+        next: {revalidate},
     });
 
     if (!response.ok) {
@@ -40,11 +45,11 @@ export function getMovies({genreId, sortBy, page}: MovieFilters = {}) {
         params.page = page.toString();
     }
 
-    return fetchFromTmdb<MovieList>('/discover/movie', params);
+    return fetchFromTmdb<MovieList>('/discover/movie', params, oneHour);
 }
 
 export function getMovieGenres() {
-    return fetchFromTmdb<GenreList>('/genre/movie/list');
+    return fetchFromTmdb<GenreList>('/genre/movie/list', undefined, oneDay);
 }
 
 export function searchMovies(query: string, page?: number) {
@@ -58,5 +63,5 @@ export function searchMovies(query: string, page?: number) {
 }
 
 export function getMovie(id: string) {
-    return fetchFromTmdb<MovieDetails>(`/movie/${id}`);
+    return fetchFromTmdb<MovieDetails>(`/movie/${id}`, undefined, oneDay);
 }

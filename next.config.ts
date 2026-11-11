@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  logging: {
+    fetches: {
+      fullUrl: false, // true would also print your api_key in the terminal
+    },
+  },
   turbopack: {
     rules: {
       "*.css": {
