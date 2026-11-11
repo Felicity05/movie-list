@@ -33,3 +33,38 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+select {
+  appearance: base-select;
+}
+
+::picker(select) {
+  appearance: base-select;
+  border: solid 1px var(--color-bright-green);
+  border-radius: 0.5rem;
+  background: var(--color-background);
+  width: 10rem;
+}
+
+select::picker-icon{
+  font-size: 0.8rem;
+  color: var(--color-ink);
+  align-content: center;
+  transition: 170ms ease;
+}
+
+select:open::picker-icon{
+  transform: rotate(180deg);
+}
+
+select option {
+  padding: 0.25rem;
+}
+
+select option:checked{
+  background: var(--color-light-green);
+}
+
+select option::checkmark{
+  color: var(--color-bright-green);
+}

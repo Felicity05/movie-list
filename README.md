@@ -38,7 +38,7 @@ For development with automatic reloading on code changes, run `npm run dev` inst
 ### Extras
 
 - **Responsive grid:** 1 column on phones, increasing to 2, 3 and 5 columns as the screen gets wider.
-- **UI for filtering and sorting:** dropdowns for the genre and the sort order. Both are disabled while the new results load.
+- **UI for filtering and sorting:** dropdowns for the genre and the sort order. Both are disabled while the new results load. In browsers that support customizable selects (`appearance: base-select`, currently Chromium-based ones), the open dropdown also uses the app's colors; other browsers show their standard dropdown.
 - **CSS transitions:** the card hover effect is animated.
 - **Loading skeleton:** pulsing placeholder cards are shown while movies load, both on the first visit and whenever the genre or sort changes.
 - **Error page:** if a TMDB request fails, a friendly message with a "Try again" button is shown instead of Next.js's default error page.
@@ -72,7 +72,8 @@ Storing the state in the URL means a filtered or sorted view can be bookmarked o
 - **Short sort names in the URL:** the URL uses the app's own names (`?sort=newest`) rather than TMDB's (`primary_release_date.desc`). Unknown values are ignored, and old `?sort=rating` links still work.
 - **No "Title Z–A" option:** TMDB's descending title sort puts titles in non-Latin alphabets after Z, so the list didn't start where users would expect.
 - **Server components by default:** data is fetched on the server, and only the controls run in the browser, since they need click and change handlers.
-- **One shared fetch helper:** `fetchFromTmdb()` in `src/api/api.ts` builds the URL, adds the API key, checks the response and returns typed data. Both API functions use it, and errors are thrown rather than hidden, so `error.tsx` can show them.
+- **One shared fetch helper:** `fetchFromTmdb()` in `src/api/api.ts` builds the URL, adds the API key, checks the response and returns typed data. Every API function uses it, and errors are thrown rather than hidden, so `error.tsx` can show them.
+- **Caching TMDB responses:** in Next.js 15 and later, `fetch` isn't cached by default, so every page load used to request the same data again. `fetchFromTmdb()` takes an optional `revalidate` time, and Next keeps each response on the server for that long: a day for the genre list and movie details, which rarely change, and an hour for movie lists, whose rankings shift during the day. The cache is keyed by the full URL, so each genre, sort and page combination is cached separately. Search isn't cached, because most queries are unique.
 - **Image loading:** the first 10 posters load immediately because they're the ones visible first. The rest load as you scroll. Each poster also has a `sizes` hint, so the browser downloads an image no bigger than the column it's shown in.
 - **Same poster shape for every card:** a few TMDB posters aren't exactly 2:3, which made some cards shorter than others. Every poster is shown in a 2:3 frame and fills it, trimming a thin strip if needed, so all cards in a row line up.
 - **Search and filters take turns:** TMDB's `/search/movie` endpoint doesn't support genre filtering or sorting. Filtering the results in the app would only cover the 20 movies on the current page, so the page count would be wrong. Instead, searching clears the genre and sort, and choosing a genre or sort clears the search.
